@@ -5,7 +5,7 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.2
-Release:	%mkrel 1
+Release:	%mkrel 2
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -22,7 +22,6 @@ Buildrequires:	pam-devel  >= 0.77
 %if %{with audit}
 Buildrequires:	audit-libs-devel >= 1.4.1
 %endif
-Requires:	sendmail-command
 Requires:	syslog-daemon
 Provides:	cron-daemon
 Requires(post): rpm-helper
@@ -126,4 +125,3 @@ rm -rf %{buildroot}
 %endif
 %config(noreplace) %{_sysconfdir}/sysconfig/crond
 %config(noreplace) %{_sysconfdir}/cron.deny
-
