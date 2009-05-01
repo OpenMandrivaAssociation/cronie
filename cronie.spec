@@ -4,17 +4,13 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.2
-Release:	%mkrel 2
+Version:	1.3
+Release:	%mkrel 1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
 #Source0: https://fedorahosted.org/cronie/%{name}-%{version}.tar.gz
 Source0:	http://mmaslano.fedorapeople.org/cronie/%{name}-%{version}.tar.gz
-Patch0:		init.patch
-Patch1:		nofollow.patch
-Patch2:		cronie-1.2-reload.patch
-Patch3:		0001-Update-manual-for-symlink.patch
 %if %{with pam}
 Requires:	pam >= 0.77
 Buildrequires:	pam-devel  >= 0.77
@@ -41,10 +37,6 @@ SELinux.
 %prep
 
 %setup -q
-%patch0 -p1 
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
 
 %build
 %serverbuild
