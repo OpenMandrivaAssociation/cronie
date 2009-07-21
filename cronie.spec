@@ -4,7 +4,7 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.3
+Version:	1.4
 Release:	%mkrel 1
 License:	MIT and BSD
 Group:		System/Servers
