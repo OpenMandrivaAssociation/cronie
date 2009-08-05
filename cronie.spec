@@ -38,7 +38,7 @@ SELinux.
 %package anacron
 Summary: Utility for running regular jobs
 Requires: crontabs
-Group: System Environment/Base
+Group: System/Servers
 Provides: anacron = 2.4
 Obsoletes: anacron < 2.4
 
