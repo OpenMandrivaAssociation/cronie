@@ -4,13 +4,14 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.4
+Version:	1.4.1
 Release:	%mkrel 1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
 #Source0: https://fedorahosted.org/cronie/%{name}-%{version}.tar.gz
 Source0:	http://mmaslano.fedorapeople.org/cronie/%{name}-%{version}.tar.gz
+Source1:	anacrontab
 %if %{with pam}
 Requires:	pam >= 0.77
 Buildrequires:	pam-devel  >= 0.77
@@ -34,14 +35,27 @@ scheduled times and related tools. It is a fork of the original vixie-cron and
 has security and configuration enhancements like the ability to use pam and
 SELinux.
 
-%prep
+%package anacron
+Summary: Utility for running regular jobs
+Requires: crontabs
+Group: System Environment/Base
+Provides: anacron = 2.4
+Obsoletes: anacron < 2.4
 
-%setup -q
+%description anacron
+Anacron becames part of cronie. Anacron is used only for running regular jobs.
+The default settings execute regular jobs by anacron, however this could be
+overloaded in settings.
+
+
+%prep
+%setup -q -n %{name}
 
 %build
 %serverbuild
 autoreconf -fis
 %configure2_5x \
+    --enable-anacron \
 %if %{with pam}
     --with-pam \
 %endif
@@ -71,6 +85,11 @@ touch %{buildroot}%{_sysconfdir}/cron.deny
 
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 install -m0644 crond.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/crond
+
+install -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/anacrontab
+install -c -m755 contrib/0hourly $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/0hourly
+mkdir -pm 755 $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly
+install -c -m755 contrib/0anacron $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/0anacron
 
 %if ! %{with pam}
 rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
@@ -117,3 +136,12 @@ rm -rf %{buildroot}
 %endif
 %config(noreplace) %{_sysconfdir}/sysconfig/crond
 %config(noreplace) %{_sysconfdir}/cron.deny
+
+%files anacron
+%defattr(-,root,root,-)
+%{_sbindir}/anacron
+%config(noreplace) %{_sysconfdir}/anacrontab
+%attr(0644,root,root) %{_sysconfdir}/cron.d/0hourly
+%attr(0755,root,root) %{_sysconfdir}/cron.hourly/0anacron
+%{_mandir}/man5/anacrontab.*
+%{_mandir}/man8/anacron.*
