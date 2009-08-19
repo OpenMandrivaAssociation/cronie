@@ -9,9 +9,11 @@ Release:	%mkrel 1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
-#Source0: https://fedorahosted.org/cronie/%{name}-%{version}.tar.gz
-Source0:	http://mmaslano.fedorapeople.org/cronie/%{name}-%{version}.tar.gz
-Source1:	anacrontab
+Source0:	https://fedorahosted.org/cronie/%{name}-%{version}.tar.gz
+Source1:	anacron-timestamp
+# check whether /var/spool/anacron/cron.* files are readable, not
+# whether they are executable, before checking their contents
+Patch0:		cronie-1.4.1-fix-anacron-test.patch
 %if %{with pam}
 Requires:	pam >= 0.77
 Buildrequires:	pam-devel  >= 0.77
@@ -49,11 +51,14 @@ overloaded in settings.
 
 
 %prep
-%setup -q -n %{name}
+%setup -q -n %{name}-%{version}
+%patch0 -p1 -b .readable
+# Make sure anacron is started after regular cron jobs, otherwise anacron might
+# run first, and after that regular cron runs the same jobs again
+sed -i -e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" contrib/anacrontab
 
 %build
 %serverbuild
-autoreconf -fis
 %configure2_5x \
     --enable-anacron \
 %if %{with pam}
@@ -86,10 +91,23 @@ touch %{buildroot}%{_sysconfdir}/cron.deny
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 install -m0644 crond.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/crond
 
-install -m 644 %{SOURCE1} $RPM_BUILD_ROOT%{_sysconfdir}/anacrontab
-install -c -m755 contrib/0hourly $RPM_BUILD_ROOT%{_sysconfdir}/cron.d/0hourly
+install -m 644 contrib/anacrontab $RPM_BUILD_ROOT%{_sysconfdir}/anacrontab
 mkdir -pm 755 $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly
 install -c -m755 contrib/0anacron $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/0anacron
+
+# Install cron job which will update anacron's daily, weekly, monthly timestamps
+# when these jobs are run by regular cron, in order to prevent duplicate execution
+for i in daily weekly monthly
+do
+mkdir -p $RPM_BUILD_ROOT/etc/cron.${i}
+sed -e "s/XXXX/${i}/" %{SOURCE1} > $RPM_BUILD_ROOT/etc/cron.${i}/z_anacron-timestamp
+done
+
+# create empty %ghost files
+mkdir -p $RPM_BUILD_ROOT/var/spool/anacron
+touch $RPM_BUILD_ROOT/var/spool/anacron/cron.daily
+touch $RPM_BUILD_ROOT/var/spool/anacron/cron.weekly
+touch $RPM_BUILD_ROOT/var/spool/anacron/cron.monthly
 
 %if ! %{with pam}
 rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
@@ -97,6 +115,11 @@ rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
 
 %post
 %_post_service crond
+
+%post anacron
+[ -e /var/spool/anacron/cron.daily ] || touch /var/spool/anacron/cron.daily
+[ -e /var/spool/anacron/cron.weekly ] || touch /var/spool/anacron/cron.weekly
+[ -e /var/spool/anacron/cron.monthly ] || touch /var/spool/anacron/cron.monthly
 
 %preun
 %_preun_service crond
@@ -141,7 +164,13 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_sbindir}/anacron
 %config(noreplace) %{_sysconfdir}/anacrontab
-%attr(0644,root,root) %{_sysconfdir}/cron.d/0hourly
+%{_sysconfdir}/cron.daily/z_anacron-timestamp
+%{_sysconfdir}/cron.weekly/z_anacron-timestamp
+%{_sysconfdir}/cron.monthly/z_anacron-timestamp
 %attr(0755,root,root) %{_sysconfdir}/cron.hourly/0anacron
+%dir /var/spool/anacron
+%ghost %verify(not md5 size mtime) /var/spool/anacron/cron.daily
+%ghost %verify(not md5 size mtime) /var/spool/anacron/cron.weekly
+%ghost %verify(not md5 size mtime) /var/spool/anacron/cron.monthly
 %{_mandir}/man5/anacrontab.*
 %{_mandir}/man8/anacron.*
