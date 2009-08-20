@@ -5,7 +5,7 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.1
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -100,7 +100,7 @@ install -c -m755 contrib/0anacron $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/0ana
 for i in daily weekly monthly
 do
 mkdir -p $RPM_BUILD_ROOT/etc/cron.${i}
-sed -e "s/XXXX/${i}/" %{SOURCE1} > $RPM_BUILD_ROOT/etc/cron.${i}/z_anacron-timestamp
+sed -e "s/XXXX/${i}/" %{SOURCE1} > $RPM_BUILD_ROOT/etc/cron.${i}/0anacron-timestamp
 done
 
 # create empty %ghost files
@@ -164,9 +164,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_sbindir}/anacron
 %config(noreplace) %{_sysconfdir}/anacrontab
-%{_sysconfdir}/cron.daily/z_anacron-timestamp
-%{_sysconfdir}/cron.weekly/z_anacron-timestamp
-%{_sysconfdir}/cron.monthly/z_anacron-timestamp
+%attr(0755,root,root) %{_sysconfdir}/cron.daily/0anacron-timestamp
+%attr(0755,root,root) %{_sysconfdir}/cron.weekly/0anacron-timestamp
+%attr(0755,root,root) %{_sysconfdir}/cron.monthly/0anacron-timestamp
 %attr(0755,root,root) %{_sysconfdir}/cron.hourly/0anacron
 %dir /var/spool/anacron
 %ghost %verify(not md5 size mtime) /var/spool/anacron/cron.daily
