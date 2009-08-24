@@ -5,7 +5,7 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.1
-Release:	%mkrel 3
+Release:	%mkrel 4
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -55,7 +55,9 @@ overloaded in settings.
 %patch0 -p1 -b .readable
 # Make sure anacron is started after regular cron jobs, otherwise anacron might
 # run first, and after that regular cron runs the same jobs again
-sed -i -e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" contrib/anacrontab
+sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
+	-e "s/nice run-parts/nice -n 19 run-parts/" \
+	contrib/anacrontab
 
 %build
 %serverbuild
