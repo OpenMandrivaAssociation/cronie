@@ -4,8 +4,8 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.4.1
-Release:	%mkrel 5
+Version:	1.4.3
+Release:	%mkrel 1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -95,23 +95,23 @@ touch %{buildroot}%{_sysconfdir}/cron.deny
 install -d %{buildroot}%{_sysconfdir}/sysconfig
 install -m0644 crond.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/crond
 
-install -m 644 contrib/anacrontab $RPM_BUILD_ROOT%{_sysconfdir}/anacrontab
-mkdir -pm 755 $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly
-install -c -m755 contrib/0anacron $RPM_BUILD_ROOT%{_sysconfdir}/cron.hourly/0anacron
+install -m 644 contrib/anacrontab %{buildroot}%{_sysconfdir}/anacrontab
+mkdir -pm 755 %{buildroot}%{_sysconfdir}/cron.hourly
+install -c -m755 contrib/0anacron %{buildroot}%{_sysconfdir}/cron.hourly/0anacron
 
 # Install cron job which will update anacron's daily, weekly, monthly timestamps
 # when these jobs are run by regular cron, in order to prevent duplicate execution
 for i in daily weekly monthly
 do
-mkdir -p $RPM_BUILD_ROOT/etc/cron.${i}
-sed -e "s/XXXX/${i}/" %{SOURCE1} > $RPM_BUILD_ROOT/etc/cron.${i}/0anacron-timestamp
+mkdir -p %{buildroot}/etc/cron.${i}
+sed -e "s/XXXX/${i}/" %{SOURCE1} > %{buildroot}/etc/cron.${i}/0anacron-timestamp
 done
 
 # create empty %ghost files
-mkdir -p $RPM_BUILD_ROOT/var/spool/anacron
-touch $RPM_BUILD_ROOT/var/spool/anacron/cron.daily
-touch $RPM_BUILD_ROOT/var/spool/anacron/cron.weekly
-touch $RPM_BUILD_ROOT/var/spool/anacron/cron.monthly
+mkdir -p %{buildroot}/var/spool/anacron
+touch %{buildroot}/var/spool/anacron/cron.daily
+touch %{buildroot}/var/spool/anacron/cron.weekly
+touch %{buildroot}/var/spool/anacron/cron.monthly
 
 %if ! %{with pam}
 rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
