@@ -5,7 +5,7 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.3
-Release:	%mkrel 1
+Release:	%mkrel 2
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -15,6 +15,8 @@ Source1:	anacron-timestamp
 # whether they are executable, before checking their contents
 Patch0:		cronie-1.4.1-fix-anacron-test.patch
 Patch1:		cronie_audit.patch
+# upstream patch to fix pam config file
+Patch2:		cronie-1.4.3-fix-pam.patch
 %if %{with pam}
 Requires:	pam >= 0.77
 Buildrequires:	pam-devel  >= 0.77
@@ -55,6 +57,7 @@ overloaded in settings.
 %setup -q -n %{name}-%{version}
 %patch0 -p1 -b .readable
 %patch1 -p1
+%patch2 -p1
 # Make sure anacron is started after regular cron jobs, otherwise anacron might
 # run first, and after that regular cron runs the same jobs again
 sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
