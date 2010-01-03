@@ -5,18 +5,17 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.3
-Release:	%mkrel 2
+Release:	%mkrel 3
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
 Source0:	https://fedorahosted.org/cronie/%{name}-%{version}.tar.gz
 Source1:	anacron-timestamp
+Source2:	crond.pam
 # check whether /var/spool/anacron/cron.* files are readable, not
 # whether they are executable, before checking their contents
 Patch0:		cronie-1.4.1-fix-anacron-test.patch
 Patch1:		cronie_audit.patch
-# upstream patch to fix pam config file
-Patch2:		cronie-1.4.3-fix-pam.patch
 %if %{with pam}
 Requires:	pam >= 0.77
 Buildrequires:	pam-devel  >= 0.77
@@ -57,7 +56,6 @@ overloaded in settings.
 %setup -q -n %{name}-%{version}
 %patch0 -p1 -b .readable
 %patch1 -p1
-%patch2 -p1
 # Make sure anacron is started after regular cron jobs, otherwise anacron might
 # run first, and after that regular cron runs the same jobs again
 sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
@@ -101,6 +99,8 @@ install -m0644 crond.sysconfig %{buildroot}%{_sysconfdir}/sysconfig/crond
 install -m 644 contrib/anacrontab %{buildroot}%{_sysconfdir}/anacrontab
 mkdir -pm 755 %{buildroot}%{_sysconfdir}/cron.hourly
 install -c -m755 contrib/0anacron %{buildroot}%{_sysconfdir}/cron.hourly/0anacron
+
+install -m644 %{SOURCE2} %{buildroot}%{_sysconfdir}/pam.d/crond
 
 # Install cron job which will update anacron's daily, weekly, monthly timestamps
 # when these jobs are run by regular cron, in order to prevent duplicate execution
