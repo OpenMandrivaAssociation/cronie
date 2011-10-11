@@ -5,13 +5,14 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.8
-Release:	%mkrel 1
+Release:	%mkrel 2
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
 Source0:	https://fedorahosted.org/cronie/%{name}-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
+Source3:	cronie.systemd
 %if %{with pam}
 Requires:	pam >= 0.77
 Buildrequires:	pam-devel  >= 0.77
@@ -21,10 +22,16 @@ Buildrequires:	audit-libs-devel >= 1.4.1
 %endif
 Requires:	syslog-daemon
 Provides:	cron-daemon
+Requires(pre):	/sbin/chkconfig
+Requires(post):	systemd-units
+Requires(preun):	systemd-units
+Requires(postun):	systemd-units
+Requires(post):	systemd-sysvinit
 Requires(post): rpm-helper
 Requires(preun): rpm-helper
 Suggests:	anacron
 Conflicts:	sysklogd < 1.4.1
+Provides:	cron-daemon
 Provides:	vixie-cron = 4:4.4
 Obsoletes:	vixie-cron <= 4:4.3
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -36,17 +43,16 @@ has security and configuration enhancements like the ability to use pam and
 SELinux.
 
 %package anacron
-Summary: Utility for running regular jobs
-Requires: crontabs
-Group: System/Servers
-Provides: anacron = 2.4
-Obsoletes: anacron < 2.4
+Summary:	Utility for running regular jobs
+Requires:	crontabs
+Group:		System/Servers
+Provides:	anacron = 2.4
+Obsoletes:	anacron < 2.4
 
 %description anacron
 Anacron becames part of cronie. Anacron is used only for running regular jobs.
 The default settings execute regular jobs by anacron, however this could be
 overloaded in settings.
-
 
 %prep
 %setup -q -n %{name}-%{version}
@@ -86,6 +92,10 @@ rm -rf %{buildroot}
 install -d -m 700 %{buildroot}/var/spool/cron
 install -d -m 755 %{buildroot}%{_sysconfdir}/cron.d
 
+# install systemd initscript
+mkdir -p %{buildroot}/lib/systemd/system/
+install -m 644 %{SOURCE3} %{buildroot}/lib/systemd/system/crond.service
+
 install -d -m 755 %{buildroot}%{_initrddir}
 install -m 755 cronie.init %{buildroot}%{_initrddir}/crond
 
@@ -121,7 +131,10 @@ rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
 %endif
 
 %post
-%_post_service crond
+if [ $1 -eq 1 ] ; then
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+    /bin/systemctl enable crond.service >/dev/null 2>&1 || :
+fi
 
 %post anacron
 [ -e /var/spool/anacron/cron.daily ] || touch /var/spool/anacron/cron.daily
@@ -129,12 +142,23 @@ rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
 [ -e /var/spool/anacron/cron.monthly ] || touch /var/spool/anacron/cron.monthly
 
 %preun
-%_preun_service crond
+if [ $1 -eq 0 ]; then
+    /bin/systemctl --no-reload disable crond.service >/dev/null 2>&1 || :
+    /bin/systemctl stop crond.service > /dev/null 2>&1 || :
+fi
 
 %postun
-if [ "$1" -ge "1" ]; then
-    service crond condrestart > /dev/null 2>&1 ||:
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ]; then
+    /bin/systemctl try-restart crond.service >/dev/null 2>&1 || :
 fi
+
+%triggerun -- cronie < 1.4.8-2
+# The package is allowed to autostart:
+/bin/systemctl enable crond.service >/dev/null 2>&1
+/sbin/chkconfig --del crond >/dev/null 2>&1 || :
+/bin/systemctl try-restart crond.service >/dev/null 2>&1 || :
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 
 # copy the lock, remove old daemon from chkconfig
 %triggerun -- vixie-cron
@@ -145,6 +169,9 @@ cp -a /var/lock/subsys/crond /var/lock/subsys/cronie > /dev/null 2>&1 ||:
 %triggerpostun -- vixie-cron
 /sbin/chkconfig --add crond
 [ -f /var/lock/subsys/cronie ] && ( rm -f /var/lock/subsys/cronie ; service crond restart ) > /dev/null 2>&1 ||:
+
+%triggerin -- pam, glibc
+/bin/systemctl try-restart crond.service >/dev/null 2>&1 || :
 
 %clean
 rm -rf %{buildroot}
@@ -166,6 +193,7 @@ rm -rf %{buildroot}
 %endif
 %config(noreplace) %{_sysconfdir}/sysconfig/crond
 %config(noreplace) %{_sysconfdir}/cron.deny
+%attr(0644,root,root) /lib/systemd/system/crond.service
 
 %files anacron
 %defattr(-,root,root,-)
