@@ -4,8 +4,8 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.4.7
-Release:	%mkrel 2
+Version:	1.4.8
+Release:	%mkrel 1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -58,7 +58,12 @@ sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
 	contrib/anacrontab
 
 %build
+%if %mdkver >= 201200
+%serverbuild_hardened
+%else
 %serverbuild
+%endif
+
 %configure2_5x \
     --enable-anacron \
 %if %{with pam}
@@ -68,7 +73,7 @@ sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
     --with-audit \
 %endif
 %if %{with inotify}
-    --with-inotify 
+    --with-inotify
 %endif
 
 %make
