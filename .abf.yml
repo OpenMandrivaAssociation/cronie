@@ -1,5 +1,2 @@
 sources:
-  "anacron-timestamp:"	29c6c611bd5acb951d5133a6910a329c3b4e7d5b
-  "crond.pam:"	a65063ce3850436d05250ee74ecdbd28e0c7075b
-  "cronie-1.4.8.tar.gz:"	1d2ce3a6ca2a6f96ff31921e4060be3199dc10f3
-  "cronie.systemd:"	e741244df769cfb8d71a9dc6bf04ebc7ea01fc59
+  "cronie-1.4.8.tar.gz": 1d2ce3a6ca2a6f96ff31921e4060be3199dc10f3

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Updates the timestamp of last XXXX run for anacron
+date +%Y%m%d > /var/spool/anacron/cron.XXXX

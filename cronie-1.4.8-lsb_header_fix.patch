@@ -1,0 +1,12 @@
+--- cronie-1.4.8/cronie.init~	2010-12-16 09:59:02.000000000 +0100
++++ cronie-1.4.8/cronie.init	2012-05-07 19:56:24.285275692 +0200
+@@ -12,8 +12,7 @@
+ # Provides: crond crontab
+ # Required-Start: $local_fs $syslog
+ # Required-Stop: $local_fs $syslog
+-# Default-Start:  2345
+-# Default-Stop: 90
++# Default-Start: 2 3 4 5
+ # Short-Description: run cron daemon
+ # Description: cron is a standard UNIX program that runs user-specified 
+ #              programs at periodic scheduled times. vixie cron adds a 
