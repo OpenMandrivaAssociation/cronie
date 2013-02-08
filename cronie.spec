@@ -5,7 +5,7 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.9
-Release:	1
+Release:	2
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -26,7 +26,7 @@ Provides:	cron-daemon
 Requires(pre):	/sbin/chkconfig
 Requires(post,preun,postun):	systemd-units
 Requires(post):	systemd-sysvinit
-Requires(post,preun): rpm-helper
+Requires(post,preun):	rpm-helper
 Suggests:	anacron
 Conflicts:	sysklogd < 1.4.1
 Provides:	cron-daemon
