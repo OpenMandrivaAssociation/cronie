@@ -21,11 +21,8 @@ Buildrequires:	pam-devel
 Buildrequires:	audit-devel
 %endif
 Requires:	syslog-daemon
-Provides:	cron-daemon
-Requires(pre):	/sbin/chkconfig
-Requires(post,preun,postun):	systemd-units
-Requires(post):	systemd-sysvinit
-Requires(post,preun):	rpm-helper
+Requires(post): rpm-helper
+Requires(preun): rpm-helper
 Suggests:	anacron
 Conflicts:	sysklogd < 1.4.1
 Provides:	cron-daemon
