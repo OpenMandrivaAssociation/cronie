@@ -65,6 +65,7 @@ sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
 %build
 %serverbuild
 %configure2_5x \
+	--with-editor=/bin/vi \
 	--enable-anacron \
 %if %{with pam}
 	--with-pam \
