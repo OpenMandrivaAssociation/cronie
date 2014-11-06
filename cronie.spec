@@ -13,7 +13,6 @@ Source0:	https://fedorahosted.org/releases/c/r/cronie/%{name}-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
 Patch0:		cronie-1.4.8-lsb_header_fix.patch
-Patch2:		unitfile-killprocess.patch
 
 %if %{with pam}
 Requires:	pam
