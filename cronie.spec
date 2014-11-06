@@ -4,8 +4,8 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.4.11
-Release:	20
+Version:	1.4.12
+Release:	1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -18,14 +18,13 @@ Patch2:		unitfile-killprocess.patch
 
 %if %{with pam}
 Requires:	pam
-Buildrequires:	pam-devel
+BuildRequires:	pam-devel
 %endif
 %if %{with audit}
-Buildrequires:	audit-devel
+BuildRequires:	audit-devel
 %endif
 Requires:	syslog-daemon
-Requires(post): rpm-helper
-Requires(preun): rpm-helper
+Requires(post,preun,postun):	rpm-helper
 Suggests:	anacron
 Conflicts:	sysklogd < 1.4.1
 Provides:	cron-daemon
@@ -42,6 +41,7 @@ SELinux.
 Summary:	Utility for running regular jobs
 Group:		System/Servers
 Requires:	crontabs
+Requires:	%{name} = %{EVRD}
 # for touch
 Requires(post):	coreutils
 Provides:	anacron = 2.4
@@ -64,9 +64,11 @@ sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
 
 %build
 %serverbuild
-%configure2_5x \
+%configure \
 	--with-editor=/bin/vi \
 	--enable-anacron \
+    --enable-pie \
+    --enable-relro \
 %if %{with pam}
 	--with-pam \
 %endif
@@ -121,7 +123,7 @@ mkdir -p %{buildroot}%{_unitdir}
 install -m 644 contrib/cronie.systemd %{buildroot}%{_unitdir}/crond.service
 
 %post
-%_post_service crond
+%systemd_post crond
 
 %post anacron
 [ -e /var/spool/anacron/cron.daily ] || touch /var/spool/anacron/cron.daily
@@ -129,12 +131,10 @@ install -m 644 contrib/cronie.systemd %{buildroot}%{_unitdir}/crond.service
 [ -e /var/spool/anacron/cron.monthly ] || touch /var/spool/anacron/cron.monthly
 
 %preun
-%_preun_service crond
+%systemd_preun crond
 
 %postun
-if [ "$1" -ge "1" ]; then
-    service crond condrestart > /dev/null 2>&1 ||:
-fi
+%systemd_postun_with_restart crond
 
 # copy the lock, remove old daemon from chkconfig
 %triggerun -- vixie-cron
