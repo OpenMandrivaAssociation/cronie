@@ -5,7 +5,7 @@
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
 Version:	1.4.12
-Release:	2
+Release:	3
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
