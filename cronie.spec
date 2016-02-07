@@ -4,8 +4,8 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.4.12
-Release:	3
+Version:	1.5.0
+Release:	1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -65,8 +65,8 @@ sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
 %configure \
 	--with-editor=/bin/vi \
 	--enable-anacron \
-    --enable-pie \
-    --enable-relro \
+	--enable-pie \
+	--enable-relro \
 %if %{with pam}
 	--with-pam \
 %endif
@@ -120,29 +120,10 @@ rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 contrib/cronie.systemd %{buildroot}%{_unitdir}/crond.service
 
-%post
-%systemd_post crond
-
 %post anacron
 [ -e /var/spool/anacron/cron.daily ] || touch /var/spool/anacron/cron.daily
 [ -e /var/spool/anacron/cron.weekly ] || touch /var/spool/anacron/cron.weekly
 [ -e /var/spool/anacron/cron.monthly ] || touch /var/spool/anacron/cron.monthly
-
-%preun
-%systemd_preun crond
-
-%postun
-%systemd_postun_with_restart crond
-
-# copy the lock, remove old daemon from chkconfig
-%triggerun -- vixie-cron
-cp -a /var/lock/subsys/crond /var/lock/subsys/cronie > /dev/null 2>&1 ||:
-
-# if the lock exist, then we restart daemon (it was running in the past).
-# add new daemon into chkconfig everytime, when we upgrade to cronie from vixie-cron
-%triggerpostun -- vixie-cron
-/sbin/chkconfig --add crond
-[ -f /var/lock/subsys/cronie ] && ( rm -f /var/lock/subsys/cronie ; service crond restart ) > /dev/null 2>&1 ||:
 
 %triggerin -- pam, glibc
 /bin/systemctl try-restart crond.service >/dev/null 2>&1 || :
@@ -177,4 +158,3 @@ cp -a /var/lock/subsys/crond /var/lock/subsys/cronie > /dev/null 2>&1 ||:
 %ghost %verify(not md5 size mtime) /var/spool/anacron/cron.monthly
 %{_mandir}/man5/anacrontab.*
 %{_mandir}/man8/anacron.*
-
