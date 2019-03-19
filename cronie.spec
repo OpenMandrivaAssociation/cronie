@@ -132,10 +132,12 @@ install -m 644 contrib/cronie.systemd %{buildroot}%{_unitdir}/crond.service
 %doc AUTHORS COPYING INSTALL README ChangeLog
 %attr(755,root,root) %{_sbindir}/crond
 %attr(6755,root,root) %{_bindir}/crontab
+%attr(6755,root,root) %{_bindir}/cronnext
 %{_mandir}/man8/crond.*
 %{_mandir}/man8/cron.*
 %{_mandir}/man5/crontab.*
 %{_mandir}/man1/crontab.*
+%{_mandir}/man1/cronnext.*
 %dir /var/spool/cron
 %dir %{_sysconfdir}/cron.d
 %if %{with pam}
