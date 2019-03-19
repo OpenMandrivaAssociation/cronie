@@ -9,7 +9,7 @@ Release:	1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
-Source0:	https://fedorahosted.org/releases/c/r/cronie/%{name}-%{version}.tar.gz
+Source0:	https://github.com/cronie-crond/cronie/releases/download/%{name}-%{version}-final/%{name}-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
 Patch0:		cronie-1.4.8-lsb_header_fix.patch
