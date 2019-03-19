@@ -4,12 +4,12 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.5.0
-Release:	3
+Version:	1.5.4
+Release:	1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
-Source0:	https://fedorahosted.org/releases/c/r/cronie/%{name}-%{version}.tar.gz
+Source0:	https://github.com/cronie-crond/cronie/releases/download/%{name}-%{version}-final/%{name}-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
 Patch0:		cronie-1.4.8-lsb_header_fix.patch
@@ -132,10 +132,12 @@ install -m 644 contrib/cronie.systemd %{buildroot}%{_unitdir}/crond.service
 %doc AUTHORS COPYING INSTALL README ChangeLog
 %attr(755,root,root) %{_sbindir}/crond
 %attr(6755,root,root) %{_bindir}/crontab
+%attr(6755,root,root) %{_bindir}/cronnext
 %{_mandir}/man8/crond.*
 %{_mandir}/man8/cron.*
 %{_mandir}/man5/crontab.*
 %{_mandir}/man1/crontab.*
+%{_mandir}/man1/cronnext.*
 %dir /var/spool/cron
 %dir %{_sysconfdir}/cron.d
 %if %{with pam}
