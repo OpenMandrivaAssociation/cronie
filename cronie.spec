@@ -52,7 +52,7 @@ overloaded in settings.
 
 %prep
 %setup -q
-%apply_patches
+%autopatch -p1
 
 # Make sure anacron is started after regular cron jobs, otherwise anacron might
 # run first, and after that regular cron runs the same jobs again
