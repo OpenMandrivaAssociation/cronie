@@ -1,0 +1,114 @@
+From 09afe49c73cb495f32b96dce32728352c46ba865 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20Stan=C4=9Bk?= <jstanek@redhat.com>
+Date: Thu, 29 Apr 2021 16:03:05 +0200
+Subject: [PATCH] Address issues found by coverity scan
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Jan Staněk <jstanek@redhat.com>
+---
+ anacron/main.c   | 8 ++++++--
+ anacron/runjob.c | 2 ++
+ src/crontab.c    | 1 +
+ src/database.c   | 3 ++-
+ src/pw_dup.c     | 1 +
+ 5 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/anacron/main.c b/anacron/main.c
+index d092970..65f8fed 100644
+--- a/anacron/main.c
++++ b/anacron/main.c
+@@ -44,8 +44,8 @@ int day_now;
+ int year, month, day_of_month;                 /* date anacron started */
+ 
+ char *program_name;
+-char *anacrontab;
+-char *spooldir;
++char *anacrontab = NULL;
++char *spooldir = NULL;
+ int serialize, force, update_only, now,
+     no_daemon, quiet, testing_only;            /* command-line options */
+ char **job_args;                       	       /* vector of "job" command-line arguments */
+@@ -128,12 +128,14 @@ parse_opts(int argc, char *argv[])
+ 	    quiet = 1;
+ 	    break;
+ 	case 't':
++	    free(anacrontab);
+ 	    anacrontab = strdup(optarg);
+ 	    break;
+ 	case 'T':
+ 	    testing_only = 1;
+ 	    break;
+ 	case 'S':
++	    free(spooldir);
+ 	    spooldir = strdup(optarg);
+ 	    break;
+ 	case 'V':
+@@ -208,9 +210,11 @@ go_background(void)
+     /* stdin is already closed */
+ 
+     if (fclose(stdout)) die_e("Can't close stdout");
++    /* coverity[leaked_handle] – fd 1 closed automatically */
+     xopen(1, "/dev/null", O_WRONLY);
+ 
+     if (fclose(stderr)) die_e("Can't close stderr");
++    /* coverity[leaked_handle] – fd 2 closed automatically */
+     xopen(2, "/dev/null", O_WRONLY);
+ 
+     pid = xfork();
+diff --git a/anacron/runjob.c b/anacron/runjob.c
+index 341351f..04d6904 100644
+--- a/anacron/runjob.c
++++ b/anacron/runjob.c
+@@ -237,7 +237,9 @@ launch_mailer(job_rec *jr)
+ 	xcloselog();
+ 
+ 	/* Ensure stdout/stderr are sane before exec-ing sendmail */
++	/* coverity[leaked_handle] – STDOUT closed automatically */
+ 	xclose(STDOUT_FILENO); xopen(STDOUT_FILENO, "/dev/null", O_WRONLY);
++	/* coverity[leaked_handle] – STDERR closed automatically */
+ 	xclose(STDERR_FILENO); xopen(STDERR_FILENO, "/dev/null", O_WRONLY);
+ 	xclose(jr->output_fd);
+ 
+diff --git a/src/crontab.c b/src/crontab.c
+index 240c112..41c8984 100644
+--- a/src/crontab.c
++++ b/src/crontab.c
+@@ -872,6 +872,7 @@ static int replace_cmd(void) {
+ 
+ 	if ((error = check_syntax(tmp)) < 0) {
+ 		fprintf(stderr, "Invalid crontab file, can't install.\n");
++		fclose(tmp);
+ 		goto done;
+ 	}
+ 
+diff --git a/src/database.c b/src/database.c
+index c1e4593..bff0256 100644
+--- a/src/database.c
++++ b/src/database.c
+@@ -559,7 +559,8 @@ int load_database(cron_db * old_db) {
+ 			if (not_a_crontab(dp))
+ 				continue;
+ 
+-			strncpy(fname, dp->d_name, NAME_MAX + 1);
++			strncpy(fname, dp->d_name, NAME_MAX);
++			fname[NAME_MAX] = '\0';
+ 
+ 			if (!glue_strings(tabname, sizeof tabname, SPOOL_DIR, fname, '/'))
+ 				continue;	/* XXX log? */
+diff --git a/src/pw_dup.c b/src/pw_dup.c
+index ea787cd..c6f7b00 100644
+--- a/src/pw_dup.c
++++ b/src/pw_dup.c
+@@ -121,6 +121,7 @@ pw_dup(const struct passwd *pw) {
+ 		cp += ssize;
+ 	}
+ 
++	/* cppcheck-suppress[memleak symbolName=cp] memory originally pointed to by cp returned via newpw */
+ 	return (newpw);
+ }
+ 
+-- 
+2.31.1
+

@@ -1,10 +1,9 @@
 %bcond_without pam
-%bcond_without audit
 %bcond_without inotify
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.5.4
+Version:	1.5.7
 Release:	1
 License:	MIT and BSD
 Group:		System/Servers
@@ -12,22 +11,19 @@ URL:		https://fedorahosted.org/cronie
 Source0:	https://github.com/cronie-crond/cronie/releases/download/%{name}-%{version}-final/%{name}-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
-Patch0:		cronie-1.4.8-lsb_header_fix.patch
-BuildRequires:	systemd-macros
+Patch0:		https://src.fedoraproject.org/rpms/cronie/raw/rawhide/f/0001-Address-issues-found-by-coverity-scan.patch
+BuildRequires:	systemd-rpm-macros
 %if %{with pam}
 Requires:	pam
 BuildRequires:	pam-devel
 %endif
-%if %{with audit}
-BuildRequires:	audit-devel
-%endif
-Requires:	syslog-daemon
-Requires(post,preun,postun):	rpm-helper
+Requires(post):	coreutils
+Requires(post):	sed
 Suggests:	anacron
-Conflicts:	sysklogd < 1.4.1
 Provides:	cron-daemon
 Provides:	vixie-cron = 4:4.4
 Obsoletes:	vixie-cron <= 4:4.3
+%{?systemd_ordering}
 
 %description
 Cronie contains the standard UNIX daemon crond that runs specified programs at
@@ -70,17 +66,15 @@ sed -i	-e "s/^START_HOURS_RANGE.*$/START_HOURS_RANGE=6-22/" \
 %if %{with pam}
 	--with-pam \
 %endif
-%if %{with audit}
-	--with-audit \
-%endif
+	--without-audit \
 %if %{with inotify}
 	--with-inotify
 %endif
 
-%make
+%make_build
 
 %install
-%makeinstall_std
+%make_install
 
 install -d -m 700 %{buildroot}/var/spool/cron
 install -d -m 755 %{buildroot}%{_sysconfdir}/cron.d
@@ -120,10 +114,21 @@ rm -f %{buildroot}%{_sysconfdir}/pam.d/crond
 mkdir -p %{buildroot}%{_unitdir}
 install -m 644 contrib/cronie.systemd %{buildroot}%{_unitdir}/crond.service
 
+%post
+%systemd_post crond.service
+
 %post anacron
 [ -e /var/spool/anacron/cron.daily ] || touch /var/spool/anacron/cron.daily
 [ -e /var/spool/anacron/cron.weekly ] || touch /var/spool/anacron/cron.weekly
 [ -e /var/spool/anacron/cron.monthly ] || touch /var/spool/anacron/cron.monthly
+
+%preun
+# run before a package is removed
+%systemd_preun crond.service
+
+%postun
+# run after a package is removed
+%systemd_postun_with_restart crond.service
 
 %triggerin -- pam, glibc
 /bin/systemctl try-restart crond.service >/dev/null 2>&1 || :
