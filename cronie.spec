@@ -3,15 +3,14 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.5.7
+Version:	1.6.1
 Release:	1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
-Source0:	https://github.com/cronie-crond/cronie/releases/download/%{name}-%{version}-final/%{name}-%{version}.tar.gz
+Source0:	https://github.com/cronie-crond/cronie/releases/download/cronie-%{version}/cronie-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
-Patch0:		https://src.fedoraproject.org/rpms/cronie/raw/rawhide/f/0001-Address-issues-found-by-coverity-scan.patch
 BuildRequires:	systemd-rpm-macros
 %if %{with pam}
 Requires:	pam
