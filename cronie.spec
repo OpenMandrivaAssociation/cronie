@@ -3,8 +3,8 @@
 
 Summary:	Cron daemon for executing programs at set times
 Name:		cronie
-Version:	1.6.1
-Release:	2
+Version:	1.7.2
+Release:	1
 License:	MIT and BSD
 Group:		System/Servers
 URL:		https://fedorahosted.org/cronie
@@ -46,8 +46,7 @@ The default settings execute regular jobs by anacron, however this could be
 overloaded in settings.
 
 %prep
-%setup -q
-%autopatch -p1
+%autosetup -p1
 
 # Make sure anacron is started after regular cron jobs, otherwise anacron might
 # run first, and after that regular cron runs the same jobs again
