@@ -11,6 +11,11 @@ URL:		https://fedorahosted.org/cronie
 Source0:	https://github.com/cronie-crond/cronie/releases/download/cronie-%{version}/cronie-%{version}.tar.gz
 Source1:	anacron-timestamp
 Source2:	crond.pam
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	systemd-rpm-macros
 %if %{with pam}
 Requires:	pam
